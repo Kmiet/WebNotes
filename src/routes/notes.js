@@ -1,26 +1,60 @@
 const router = require('express').Router();
-const db = require('../db');
+const { Note } = require('../models');
 
-router.get('/:id', (req, res) => {
-  let note_id = parseInt(req.params.id);
-  db.all('Note', { note_id }).then(collection => {
-    collection.toJson().then(data => {
-      res.send(data[0]);
-    });
-  }).catch(err => {
-    console.log(err);
-  });
+router.get('/:id', async (req, res) => {
+  let [err, results] = await Note.findById(req.params.id);
+  if(err) {
+    res.status(404).json(results);
+  } else {
+    res.json(results);
+  }
 });
 
+router.put('/:id', async (req, res) => {
+  let [err, results] = await Note.update(
+    req.params.id,
+    req.params.title,
+    req.params.content
+  );
+  if(err) {
+    res.status(404).json(results);
+  } else {
+    res.status(200).json(results);
+  }
+});
 
-router.get('/', (req, res) => {
-  db.all('Note').then(collection => {
-    collection.toJson().then(data => {
-      res.send(data);
-    });
-  }).catch(err => {
-    console.log(err);
+router.delete('/:id', async (req, res) => {
+  let [err, results] = await Note.remove(
+    req.params.id,
+    req.params.title,
+    req.params.content
+  );
+  if(err) {
+    res.status(404).json(results);
+  } else {
+    res.status(200).json(results);
+  }
+});
+
+router.get('/', async (req, res) => {
+  let [err, results] = await Note.findAll();
+  if(err) {
+    res.status(404).json(results);
+  } else {
+    res.json(results);
+  }
+});
+
+router.post('/', async (req, res) => {
+  let [err, results] = await Note.create({
+    title: '',
+    content: ''
   });
+  if(err) {
+    res.status(404).json(results);
+  } else {
+    res.status(201).json(results);
+  }
 });
 
 module.exports = router;

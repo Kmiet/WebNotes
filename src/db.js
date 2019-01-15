@@ -1,8 +1,11 @@
-const Neode = require('neode');
-const models = require('./models');
+const neo4j = require('neo4j-driver').v1;
 
-const persistence = new Neode.fromEnv();
+const driver = neo4j.driver(
+  process.env.DB_URI, 
+  neo4j.auth.basic(
+    process.env.DB_USER, 
+    process.env.DB_PASS
+  )
+);
 
-persistence.model('Note', models.Note);
-
-module.exports = persistence;
+module.exports = driver;

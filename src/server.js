@@ -7,4 +7,8 @@ const server = express();
 
 server.use('/', ApiRouter);
 
-server.listen(3000);
+server.listen(process.env.SERVER_PORT);
+
+process.on('exit', () => {
+  db.close();
+});
