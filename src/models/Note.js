@@ -13,7 +13,7 @@ const create = async (title, content, ...params) => {
     }
   ).then(res => {
     session.close();
-    return [false, res.records[0].get()];
+    return [false, res.records[0].get('n').properties];
   }).catch(err => {
     return [true, err];
   });
@@ -64,7 +64,7 @@ const remove = async (id) => {
     }
   ).then(res => {
     session.close();
-    return [false, res.records[0].get('n').properties];
+    return [false, null];
   }).catch(err => {
     return [true, err];
   });
