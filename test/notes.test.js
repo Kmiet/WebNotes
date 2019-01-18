@@ -23,6 +23,7 @@ describe('WebNotes API tests', () => {
       note_ids.push(res.body.note_id);
       assert(res.body.title, title);
       assert(res.body.content, content);
+      assert.notDeepEqual(res.body.created_at, undefined);
     });
   });
 
@@ -58,6 +59,58 @@ describe('WebNotes API tests', () => {
 
   test('GET /notes/id with wrong ID', async () => {
     await request(server).get('/notes/' + nonExistentId).expect(404, {
+      code: 404,
+      msg: 'Resource not found'
+    });
+  });
+
+  test('PUT /notes/id with {title, content}', async () => {
+    await request(server).put('/notes/' + note_ids[0]).send({
+      title: content,
+      content: title
+    }).expect(201).then(res => {
+      assert(res.body.note_id, note_ids[0]);
+      assert(res.body.title, content);
+      assert(res.body.content, title);
+      assert.notDeepEqual(res.body.created_at, undefined);
+      assert.notDeepEqual(res.body.modified_at, undefined);
+    });
+  });
+
+  test('PUT /notes/id with {title}', async () => {
+    await request(server).put('/notes/' + note_ids[0]).send({
+      title: content
+    }).expect(400, {
+      code: 400,
+      msg: 'Title or content field is missing'
+    });
+  });
+
+  test('PUT /notes/id with {content}', async () => {
+    await request(server).put('/notes/' + note_ids[0]).send({
+      content: title
+    }).expect(400, {
+      code: 400,
+      msg: 'Title or content field is missing'
+    });
+  });
+
+  test('PUT /notes/id with wrong ID', async () => {
+    await request(server).put('/notes/' + nonExistentId).send({
+      title: content,
+      content: title
+    }).expect(404, {
+      code: 404,
+      msg: 'Resource not found'
+    });
+  });
+
+  test('DELETE /notes/id', async () => {
+    await request(server).delete('/notes/' + note_ids[0]).expect(204);  
+  });
+
+  test('DELETE /notes/id with wrong ID', async () => {
+    await request(server).delete('/notes/' + nonExistentId).expect(404, {
       code: 404,
       msg: 'Resource not found'
     });

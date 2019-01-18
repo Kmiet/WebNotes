@@ -57,12 +57,14 @@ const remove = (id) => {
   let session = db.session();
   return session.run(
     `MATCH (n: Note {note_id: {note_id}})
-     DETACH DELETE n`,
+     DETACH DELETE n
+     RETURN COUNT(n)`,
     {
       note_id: id
     }
   ).then(res => {
     session.close();
+    if(res.records[0].get('COUNT(n)') == 0) throw { code: 404, msg: 'Resource not found' };
     return [false, null];
   }).catch(err => {
     return [true, err];
@@ -92,7 +94,7 @@ const update = (id, title, content, ...params) => {
     }
   ).then(res => {
     session.close();
-    if(res.records.length == 0) throw { code: 404, msg: 'Update failed' };
+    if(res.records.length == 0) throw { code: 404, msg: 'Resource not found' };
     return [false, res.records[0].get('n').properties];
   }).catch(err => {
     return [true, err];
