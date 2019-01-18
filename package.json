@@ -1,6 +1,6 @@
 {
   "name": "webnotes",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "main": "./src/server.js",
   "author": "Krzysztof Kmiecik",
   "license": "MIT",

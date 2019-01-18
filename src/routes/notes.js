@@ -10,8 +10,8 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
   let [err, results] = await Note.update(
     req.params.id,
-    req.params.title,
-    req.params.content
+    req.body.title,
+    req.body.content
   );
   if(err) res.status(404).json(results);
   else res.status(201).json(results);

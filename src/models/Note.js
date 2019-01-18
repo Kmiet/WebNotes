@@ -1,9 +1,9 @@
 const db = require('../db');
 
-const create = async (title, content, ...params) => {
+const create = (title, content, ...params) => {
   let session = db.session();
-  let data = await session.run(
-    `CREATE (n:Note {title: {title}, content: {content}, created_at: {created_at}}) 
+  return session.run(
+    `CREATE (n: Note {title: {title}, content: {content}, created_at: {created_at}}) 
      SET n.note_id = id(n) 
      RETURN n`,
     {
@@ -17,13 +17,13 @@ const create = async (title, content, ...params) => {
   }).catch(err => {
     return [true, err];
   });
-  return data;
 };
 
-const findAll = async () => {
+const findAll = () => {
   let session = db.session();
-  let data = await session.run(
-    `MATCH (n:Note)
+  return session.run(
+    `MATCH (n: Note)
+     WHERE NOT (n)-[:CHANGED_TO]->(:Note)
      RETURN n`
   ).then(res => {
     session.close();
@@ -33,13 +33,13 @@ const findAll = async () => {
     session.close();
     return [true, error];
   });
-  return data;
 }
 
-const findById = async (id) => {
+const findById = (id) => {
   let session = db.session();
-  let data = await session.run(
-    `MATCH (n:Note {note_id: {note_id}})
+  return session.run(
+    `MATCH (n: Note {note_id: {note_id}})
+     WHERE NOT (n)-[:CHANGED_TO]->(:Note)
      RETURN n`,
     {
       note_id: parseInt(id)
@@ -51,14 +51,13 @@ const findById = async (id) => {
   }).catch(err => {
     return [true, err];
   });
-  return data;
 };
 
-const remove = async (id) => {
+const remove = (id) => {
   let session = db.session();
-  let data = await session.run(
-    `MATCH (n:Note {note_id: {note_id}})
-     DELETE n`,
+  return session.run(
+    `MATCH (n: Note {note_id: {note_id}})
+     DETACH DELETE n`,
     {
       note_id: parseInt(id)
     }
@@ -68,18 +67,22 @@ const remove = async (id) => {
   }).catch(err => {
     return [true, err];
   });
-  return data;
 };
 
-const update = async (id, title, content, ...params) => {
+const update = (id, title, content, ...params) => {
   let session = db.session();
-  let data = await session.run(
-    `CREATE (n:Note {
-      title: {title}, 
-      content: {content}, 
-      note_id: {note_id}, 
-      modified_at: {modified_at}
-     })
+  return session.run(
+    `MATCH (p: Note {note_id: {note_id} })
+     WHERE NOT (p)-[:CHANGED_TO]->(:Note)
+     CREATE (n: Note {
+        title: {title}, 
+        content: {content},
+        modified_at: {modified_at}
+      }),
+      (p)-[:CHANGED_TO]->(n)
+     SET 
+      n.created_at = p.created_at,
+      n.note_id = p.note_id
      RETURN n`,
     {
       note_id: parseInt(id),
@@ -94,7 +97,6 @@ const update = async (id, title, content, ...params) => {
   }).catch(err => {
     return [true, err];
   });
-  return data;
 };
 
 module.exports = {

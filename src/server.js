@@ -5,7 +5,6 @@ const db = require('./db.js');
 const ApiRouter = require('./routes');
 
 const server = express();
-//server.use(bodyParser());
 server.use(bodyParser.json());
 
 server.use('/', ApiRouter);
