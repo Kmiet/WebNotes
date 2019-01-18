@@ -8,13 +8,20 @@ router.get('/:id', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-  let [err, results] = await Note.update(
-    req.params.id,
-    req.body.title,
-    req.body.content
-  );
-  if(err) res.status(404).json(results);
-  else res.status(201).json(results);
+  if(!req.body.title || !req.body.content) {
+    res.status(400).json({
+      code: 400,
+      msg: 'Title or content field is missing'
+    });
+  } else {
+    let [err, results] = await Note.update(
+      req.params.id,
+      req.body.title,
+      req.body.content
+    );
+    if(err) res.status(404).json(results);
+    else res.status(201).json(results);
+  }
 });
 
 router.delete('/:id', async (req, res) => {

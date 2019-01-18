@@ -4,7 +4,7 @@ const create = (title, content, ...params) => {
   let session = db.session();
   return session.run(
     `CREATE (n: Note {title: {title}, content: {content}, created_at: {created_at}}) 
-     SET n.note_id = id(n) 
+     SET n.note_id = toString(id(n))
      RETURN n`,
     {
       title,
@@ -42,7 +42,7 @@ const findById = (id) => {
      WHERE NOT (n)-[:CHANGED_TO]->(:Note)
      RETURN n`,
     {
-      note_id: parseInt(id)
+      note_id: id
     }
   ).then(res => {
     session.close();
@@ -59,7 +59,7 @@ const remove = (id) => {
     `MATCH (n: Note {note_id: {note_id}})
      DETACH DELETE n`,
     {
-      note_id: parseInt(id)
+      note_id: id
     }
   ).then(res => {
     session.close();
@@ -72,7 +72,7 @@ const remove = (id) => {
 const update = (id, title, content, ...params) => {
   let session = db.session();
   return session.run(
-    `MATCH (p: Note {note_id: {note_id} })
+    `MATCH (p: Note {note_id: {note_id}})
      WHERE NOT (p)-[:CHANGED_TO]->(:Note)
      CREATE (n: Note {
         title: {title}, 
@@ -85,7 +85,7 @@ const update = (id, title, content, ...params) => {
       n.note_id = p.note_id
      RETURN n`,
     {
-      note_id: parseInt(id),
+      note_id: id,
       title,
       content,
       modified_at: new Date().toISOString()

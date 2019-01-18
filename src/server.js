@@ -14,3 +14,6 @@ server.listen(process.env.SERVER_PORT);
 process.on('exit', () => {
   db.close();
 });
+
+// For tests
+module.exports = server;
