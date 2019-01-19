@@ -1,6 +1,16 @@
 const router = require('express').Router();
 const { Note } = require('../models');
 
+router.get('/:id/history', async (req, res) => {
+  let [err, results] = await Note.getHistory(req.params.id, {
+    order: req.query.order,
+    limit: parseInt(req.query.limit),
+    page: parseInt(req.query.page)
+  });
+  if(err) res.status(results.code).json(results);
+  else res.json(results);
+});
+
 router.get('/:id', async (req, res) => {
   let [err, results] = await Note.findById(req.params.id);
   if(err) res.status(404).json(results);

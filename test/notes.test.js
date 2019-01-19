@@ -15,14 +15,14 @@ describe('WebNotes API tests', () => {
     });
   });
 
-  test('POST /notes with {title, content}', async () => {
+  test('POST /notes with {title, content} - DB connection test', async () => {
     await request(server).post('/notes').send({
       title,
       content
     }).expect(201).then(res => {
       note_ids.push(res.body.note_id);
-      assert(res.body.title, title);
-      assert(res.body.content, content);
+      assert.equal(res.body.title, title);
+      assert.equal(res.body.content, content);
       assert.notDeepEqual(res.body.created_at, undefined);
     });
   });
@@ -51,9 +51,9 @@ describe('WebNotes API tests', () => {
 
   test('GET /notes/id', async () => {
     await request(server).get('/notes/' + note_ids[0]).expect(200).then(res => {
-      assert(note_ids[0], res.body.note_id);
-      assert(title, res.body.title);
-      assert(content, res.body.content);
+      assert.equal(note_ids[0], res.body.note_id);
+      assert.equal(title, res.body.title);
+      assert.equal(content, res.body.content);
     });
   });
 
@@ -69,9 +69,9 @@ describe('WebNotes API tests', () => {
       title: content,
       content: title
     }).expect(201).then(res => {
-      assert(res.body.note_id, note_ids[0]);
-      assert(res.body.title, content);
-      assert(res.body.content, title);
+      assert.equal(res.body.note_id, note_ids[0]);
+      assert.equal(res.body.title, content);
+      assert.equal(res.body.content, title);
       assert.notDeepEqual(res.body.created_at, undefined);
       assert.notDeepEqual(res.body.modified_at, undefined);
     });
@@ -103,6 +103,125 @@ describe('WebNotes API tests', () => {
       code: 404,
       msg: 'Resource not found'
     });
+  });
+
+  test('GET /notes/id/history', async () => {
+    await request(server).get('/notes/' + note_ids[0] + '/history').expect(200).then(res => {
+      let data = res.body.versions;
+      assert.equal(res.body.order, "ASC");
+      assert.equal(data.length, res.body.length);
+      assert.equal(data.length, 2);
+      assert.equal(data[0].title, title);
+      assert.equal(data[0].content, content);
+      assert.equal(data[1].title, content);
+      assert.equal(data[1].content, title);
+      assert.equal(data[0].created_at, data[1].created_at);
+      assert.equal(data[0].note_id, data[1].note_id);
+      assert.equal(data[1].modified_at > data[0].modified_at, true);
+      assert.equal(data[1].version > data[0].version > 0, true);
+    });  
+  });
+
+  test('GET /notes/id/history?order=DESC', async () => {
+    await request(server).get('/notes/' + note_ids[0] + '/history?order=DESC').expect(200).then(res => {
+      let data = res.body.versions;
+      assert.equal(res.body.order, "DESC");
+      assert.equal(data.length, res.body.length);
+      assert.equal(data.length, 2);
+      assert.equal(data[1].title, title);
+      assert.equal(data[1].content, content);
+      assert.equal(data[0].title, content);
+      assert.equal(data[0].content, title);
+      assert.equal(data[0].created_at, data[1].created_at);
+      assert.equal(data[0].note_id, data[1].note_id);
+      assert.equal(data[1].modified_at < data[0].modified_at, true);
+      assert.equal(0 < data[1].version < data[0].version, true);
+    });  
+  });
+
+  test('GET /notes/id/history?order=ASC&limit=3', async () => {
+    await request(server).put('/notes/' + note_ids[0]).send({
+      title: title,
+      content: content
+    });
+
+    await request(server).put('/notes/' + note_ids[0]).send({
+      title: content,
+      content: title
+    });
+
+    await request(server).get('/notes/' + note_ids[0] + '/history?limit=3').expect(200).then(res => {
+      let data = res.body.versions;
+      assert.equal(res.body.order, "ASC");
+      assert.equal(data.length, res.body.length);
+      assert.equal(data.length, 3);
+      assert.equal(data[0].title, data[2].title);
+      assert.equal(data[0].title, title);
+      assert.equal(data[0].content, data[2].content);
+      assert.equal(data[0].content, content);
+      assert.equal(data[1].title, content);
+      assert.equal(data[1].content, title);
+      assert.equal(data[0].created_at, data[1].created_at);
+      assert.equal(data[0].created_at, data[2].created_at);
+      assert.equal(data[0].note_id, data[1].note_id);
+      assert.equal(data[0].note_id, data[2].note_id);
+      assert.equal(data[2].modified_at > data[1].modified_at, true);
+      assert.equal(data[1].modified_at > data[0].modified_at, true);
+      assert.equal(data[2].version > data[1].version, true);
+      assert.equal(data[1].version > data[0].version, true);
+    });  
+  });
+
+  test('GET /notes/id/history?order=DESC&limit=3', async () => {
+
+    await request(server).get('/notes/' + note_ids[0] + '/history?order=DESC&limit=3').expect(200).then(res => {
+      let data = res.body.versions;
+      assert.equal(res.body.order, "DESC");
+      assert.equal(data.length, res.body.length);
+      assert.equal(data.length, 3);
+      assert.equal(data[0].title, data[2].title);
+      assert.equal(data[0].title, content);
+      assert.equal(data[0].content, data[2].content);
+      assert.equal(data[0].content, title);
+      assert.equal(data[1].title, title);
+      assert.equal(data[1].content, content);
+      assert.equal(data[0].created_at, data[1].created_at);
+      assert.equal(data[0].created_at, data[2].created_at);
+      assert.equal(data[0].note_id, data[1].note_id);
+      assert.equal(data[0].note_id, data[2].note_id);
+      assert.equal(data[2].modified_at < data[1].modified_at, true);
+      assert.equal(data[1].modified_at < data[0].modified_at, true);
+      assert.equal(data[2].version < data[1].version, true);
+      assert.equal(data[1].version < data[0].version, true);
+    });  
+  });
+
+  test('GET /notes/id/history?limit=3&page=2', async () => {
+
+    await request(server).get('/notes/' + note_ids[0] + '/history?limit=3&page=2').expect(200).then(res => {
+      let data = res.body.versions;
+      assert.equal(res.body.order, "ASC");
+      assert.equal(data.length, res.body.length);
+      assert.equal(data.length, 1);
+      assert.equal(data[0].title, content);
+      assert.equal(data[0].content, title);
+      assert.equal(data[0].version, 4);
+    });  
+  });
+
+  test('GET /notes/id/history?limit=3&page=3 - skipped all entities', async () => {
+
+    await request(server).get('/notes/' + note_ids[0] + '/history?limit=3&page=3').expect(500, {
+      code: 500,
+      msg: 'Skipped all of the entities. There is only ' + 4 + ' of them.'
+    });
+  });
+
+  test('GET /notes/id/history with wrong ID', async () => {
+    await request(server).get('/notes/' + nonExistentId + '/history').expect(404, {
+      code: 404,
+      msg: 'Resource not found'
+    });  
   });
 
   test('DELETE /notes/id', async () => {

@@ -1,9 +1,14 @@
 const db = require('../db');
 
-const create = (title, content, ...params) => {
+const create = (title, content) => {
   let session = db.session();
   return session.run(
-    `CREATE (n: Note {title: {title}, content: {content}, created_at: {created_at}}) 
+    `CREATE (n: Note {
+      title: $title, 
+      content: $content, 
+      created_at: $created_at, 
+      modified_at: $created_at
+     }) 
      SET n.note_id = toString(id(n))
      RETURN n`,
     {
@@ -38,7 +43,7 @@ const findAll = () => {
 const findById = (id) => {
   let session = db.session();
   return session.run(
-    `MATCH (n: Note {note_id: {note_id}})
+    `MATCH (n: Note {note_id: $note_id})
      WHERE NOT (n)-[:CHANGED_TO]->(:Note)
      RETURN n`,
     {
@@ -53,10 +58,60 @@ const findById = (id) => {
   });
 };
 
+const getHistory = (id, options) => {
+  let session = db.session();
+  let [order, limit, page] = [
+    options.order ? (options.order.toUpperCase() === 'DESC' ? 'DESC' : 'ASC') : 'ASC',
+    !isNaN(options.limit) ? (options.limit > 0 ? options.limit : false) : false,
+    !isNaN(options.page) ? options.page : 0
+  ];
+
+  return session.run(
+    `MATCH (other_n: Note {note_id: $note_id})
+     RETURN COUNT(other_n) as n
+     UNION
+     MATCH (n: Note {note_id: $note_id})
+     RETURN n
+     ORDER BY n.modified_at ` + order + (limit === false ? '' : `
+     SKIP $skip
+     LIMIT $limit`),
+    {
+      note_id: id,
+      skip: (page - 1) * (limit = limit ? limit : 0),
+      limit
+    }
+  ).then(res => {
+    session.close();
+
+    let count_all = res.records.shift().get('n');
+    if(count_all == 0) throw { code: 404, msg: 'Resource not found' };
+    if(limit && (count_all <= (page - 1) * limit)) throw { code: 500, msg: 'Skipped all of the entities. There is only ' + count_all + ' of them.' };
+
+    let current = (limit ? limit : 0) * (page > 0 ? page - 1 : 0);
+    let getVersion;
+
+    if(order == 'ASC') getVersion = () => ++current;
+    else getVersion = () => count_all - (current++);
+
+    return [false, {
+      order: order,
+      length: res.records.length,
+      versions: res.records.map(record => {
+        let data = record.get('n').properties;
+        data.version = getVersion();
+        return data;
+      })
+    }];
+  }).catch(err => {
+    return [true, err];
+  });
+}
+
+
 const remove = (id) => {
   let session = db.session();
   return session.run(
-    `MATCH (n: Note {note_id: {note_id}})
+    `MATCH (n: Note {note_id: $note_id})
      DETACH DELETE n
      RETURN COUNT(n)`,
     {
@@ -74,12 +129,12 @@ const remove = (id) => {
 const update = (id, title, content, ...params) => {
   let session = db.session();
   return session.run(
-    `MATCH (p: Note {note_id: {note_id}})
+    `MATCH (p: Note {note_id: $note_id})
      WHERE NOT (p)-[:CHANGED_TO]->(:Note)
      CREATE (n: Note {
-        title: {title}, 
-        content: {content},
-        modified_at: {modified_at}
+        title: $title, 
+        content: $content,
+        modified_at: $modified_at
       }),
       (p)-[:CHANGED_TO]->(n)
      SET 
@@ -105,6 +160,7 @@ module.exports = {
   create,
   findAll,
   findById,
+  getHistory,
   remove,
   update
 };
