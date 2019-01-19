@@ -40,6 +40,16 @@ $ npm run start
 $ yarn start
 ```
 
+## Tests
+
+To run tests simply type:
+```js
+$ npm run test
+// or
+$ yarn test
+```
+
+
 ## API
 
 Let's assume the server is running on your own computer on port __3000__ and the OS is __Unix__ based one.
