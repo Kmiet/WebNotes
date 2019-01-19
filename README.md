@@ -64,7 +64,7 @@ Possible responses:
 
 + #### 200 OK
   Returns a list of notes in a JSON format:
-  ```json
+  ```js
   [
     {
       "note_id": "0",
