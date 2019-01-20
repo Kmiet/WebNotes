@@ -68,15 +68,16 @@ Possible responses:
   [
     {
       "note_id": "0",
+      // DateTime of object initialization
       "created_at": "2019-01-18T19:52:28.274Z",
+      // DateTime of last modification (when initialized it equals to created_at)
+      "modified_at": "2019-01-18T19:52:28.274Z",
       "title": "My First Note",
       "content": "The best note i've ever written"
     },
     {
       "note_id": "1",
-      // DateTime of object initialization
       "created_at": "2019-01-18T20:43:58.564Z",
-      // DateTime of last modification
       "modified_at": "2019-01-18T20:44:00.595Z",
       "title": "Second note",
       "content": "Not as good as the first one :C"
@@ -85,7 +86,7 @@ Possible responses:
   ```
 + #### 404 Not Found
   When there are no notes in DB.
-  ```json
+  ```js
   {
     "code": 404,
     "msg": "Resource not found"
@@ -111,6 +112,7 @@ Possible responses:
   {
     "note_id": "0",
     "created_at": "2019-01-18T19:52:28.274Z",
+    "modified_at": "2019-01-18T19:52:28.274Z",
     "title": "My First Note",
     "content": "The best note i've ever written"
   }
@@ -140,6 +142,7 @@ Possible responses:
   {
     "note_id": "0",
     "created_at": "2019-01-18T19:52:28.274Z",
+    "modified_at": "2019-01-18T19:52:28.274Z",
     "title": "My First Note",
     "content": "The best note i've ever written"
   }
@@ -208,6 +211,77 @@ Possible responses:
 
 + #### 404 Not Found
   When there is no entity with the __note_id__ = __n0nEx1st3nt__.
+  ```json
+  {
+    "code": 404,
+    "msg": "Resource not found"
+  }
+  ```
+
+### GET /notes/:id/history
+Returns all previous versions of the note with given __ID__, ordered by their modification time.
+
+Optional query parameters:
+
++ ```order```: Either ascending ```ASC``` (from the latest to most recent version) or descending ```DESC```. Option is not case sensitive. Defaults to ```ASC```.
+
++ ```limit```: Accepts only ```:number > 0``` values, otherwise ignores the parameter. Limits result set to a subset of top ```$limit``` records. Example: 
+  > There is 15 versions of given note stored in DB. Query ```?order=DESC&limit=10``` will return all of the last ten versions.
+
++ ```page```: Usable when ```$limit > 0```. Accepts only ```:number > 0``` values, otherwise ignores the parameter. Skips the top ```$limit * ($page - 1)``` records and then returns next ```$limit`` of them. Example:
+  > There is 15 versions of given note stored in DB. Query ```?order=ASC&limit=10&page=2``` will skip the first ten versions and then return the 5 most recent ones.
+
+Example:
+
+```sh 
+$ curl -v -X GET "http://localhost:3000/notes/21/history?order=DESC&limit=3&page=2"
+```
+
+Possible responses:
+
++ #### 200 OK
+  Returns a list of note's versions in a JSON format:
+  ```json
+  {
+    // Let's assume there are only 5 versions stored in DB
+    "order": "DESC",
+    "length": 2,
+    "versions": [
+      {
+        "note_id": "21",
+        "created_at": "2019-01-19T17:49:58.879Z",
+        "title": "TODO Note",
+        "modified_at": "2019-01-19T17:50:51.898Z",
+        "content": "Take a nap",
+        "version": 5
+      },
+      {
+        "note_id": "21",
+        "created_at": "2019-01-19T17:49:58.879Z",
+        "title": "TODO Note",
+        "modified_at": "2019-01-19T17:50:36.375Z",
+        "content": "Have lunch",
+        "version": 4
+      }
+    ]
+  }
+  ```
++ #### 400 Bad Request
+  Let's assume there are only 3 versions stored in DB. When querying with ```?limit=3&page=2``` we skip all of them and there are no records available to return.
+
+  ```js
+  {
+    "code": 400,
+    // Number of stored versions
+    "max": 3,
+    // Number of skipped records
+    "offset": 3,
+    "msg": "Skipped all of the entities"
+  }
+  ```
+
++ #### 404 Not Found
+  When there is no entity with the __note_id__ = __21__.
   ```json
   {
     "code": 404,

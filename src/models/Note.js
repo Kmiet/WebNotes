@@ -77,17 +77,22 @@ const getHistory = (id, options) => {
      LIMIT $limit`),
     {
       note_id: id,
-      skip: (page - 1) * (limit = limit ? limit : 0),
+      skip: (page = (page > 0 ? page - 1 : 0)) * (limit = (limit ? limit : 0)),
       limit
     }
   ).then(res => {
     session.close();
 
     let count_all = res.records.shift().get('n');
+    let current = limit * page;
     if(count_all == 0) throw { code: 404, msg: 'Resource not found' };
-    if(limit && (count_all <= (page - 1) * limit)) throw { code: 500, msg: 'Skipped all of the entities. There is only ' + count_all + ' of them.' };
+    if(limit && (count_all <= current)) throw { 
+      code: 400, 
+      max: count_all.toInt(), 
+      offset: current, 
+      msg: 'Skipped all of the entities.' 
+    };
 
-    let current = (limit ? limit : 0) * (page > 0 ? page - 1 : 0);
     let getVersion;
 
     if(order == 'ASC') getVersion = () => ++current;

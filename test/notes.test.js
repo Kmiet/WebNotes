@@ -211,9 +211,11 @@ describe('WebNotes API tests', () => {
 
   test('GET /notes/id/history?limit=3&page=3 - skipped all entities', async () => {
 
-    await request(server).get('/notes/' + note_ids[0] + '/history?limit=3&page=3').expect(500, {
-      code: 500,
-      msg: 'Skipped all of the entities. There is only ' + 4 + ' of them.'
+    await request(server).get('/notes/' + note_ids[0] + '/history?limit=3&page=3').expect(400, {
+      code: 400,
+      max: 4,
+      offset: 6,
+      msg: 'Skipped all of the entities.'
     });
   });
 
