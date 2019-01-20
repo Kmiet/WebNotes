@@ -108,7 +108,7 @@ Possible responses:
 
 + #### 201 Created
   Returns note's data in JSON format:
-  ```json
+  ```js
   {
     "note_id": "0",
     "created_at": "2019-01-18T19:52:28.274Z",
@@ -119,7 +119,7 @@ Possible responses:
   ```
 + #### 400 Bad Request
   When there was no __ title __ or __ content __ in request body.
-  ```json
+  ```js
   {
     "code": 400,
     "msg": "Title or content field is missing"
@@ -138,7 +138,7 @@ Possible responses:
 
 + #### 200 OK
   Returns a list of notes in a JSON format:
-  ```json
+  ```js
   {
     "note_id": "0",
     "created_at": "2019-01-18T19:52:28.274Z",
@@ -149,7 +149,7 @@ Possible responses:
   ```
 + #### 404 Not Found
   When there is no entity with the __note_id__ = __0__.
-  ```json
+  ```js
   {
     "code": 404,
     "msg": "Resource not found"
@@ -170,7 +170,7 @@ Possible responses:
 
 + #### 201 Created
   Returns an updated note in a JSON format:
-  ```json
+  ```js
   {
     "note_id": "1",
     "created_at": "2019-01-18T20:43:58.564Z",
@@ -181,7 +181,7 @@ Possible responses:
   ```
 + #### 400 Bad Request
   When there was no __ title __ or __ content __ in request body.
-  ```json
+  ```js
   {
     "code": 400,
     "msg": "Title or content field is missing"
@@ -189,7 +189,7 @@ Possible responses:
   ```
 + #### 404 Not Found
   When there is no entity with the __note_id__ = __1__.
-  ```json
+  ```js
   {
     "code": 404,
     "msg": "Resource not found"
@@ -211,7 +211,7 @@ Possible responses:
 
 + #### 404 Not Found
   When there is no entity with the __note_id__ = __n0nEx1st3nt__.
-  ```json
+  ```js
   {
     "code": 404,
     "msg": "Resource not found"
@@ -223,7 +223,7 @@ Returns all previous versions of the note with given __ID__, ordered by their mo
 
 Optional query parameters:
 
-+ ```order```: Either ascending ```ASC``` (from the latest to most recent version) or descending ```DESC```. Option is not case sensitive. Defaults to ```ASC```.
++ ```order```: Either ascending ```ASC``` (from first to the latest version) or descending ```DESC```. Option is not case sensitive. Defaults to ```ASC```.
 
 + ```limit```: Accepts only ```:number > 0``` values, otherwise ignores the parameter. Limits result set to a subset of top ```$limit``` records. Example: 
   > There is 15 versions of given note stored in DB. Query ```?order=DESC&limit=10``` will return all of the last ten versions.
@@ -241,7 +241,7 @@ Possible responses:
 
 + #### 200 OK
   Returns a list of note's versions in a JSON format:
-  ```json
+  ```js
   {
     // Let's assume there are only 5 versions stored in DB
     "order": "DESC",
@@ -267,7 +267,7 @@ Possible responses:
   }
   ```
 + #### 400 Bad Request
-  Let's assume there are only 3 versions stored in DB. When querying with ```?limit=3&page=2``` we skip all of them and there are no records available to return.
+  Let's assume there are only 3 versions stored in DB. When querying with __```?limit=3&page=2```__ we skip all of them and there are no records available to return.
 
   ```js
   {
@@ -282,7 +282,7 @@ Possible responses:
 
 + #### 404 Not Found
   When there is no entity with the __note_id__ = __21__.
-  ```json
+  ```js
   {
     "code": 404,
     "msg": "Resource not found"
