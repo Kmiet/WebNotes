@@ -223,12 +223,12 @@ Returns all previous versions of the note with given __ID__, ordered by their mo
 
 Optional query parameters:
 
-+ ```order```: Either ascending ```ASC``` (from first to the latest version) or descending ```DESC```. Option is not case sensitive. Defaults to ```ASC```.
++ __```order```__: Either ascending ```ASC``` (from first to the latest version) or descending ```DESC```. Option is not case sensitive. Defaults to ```ASC```.
 
-+ ```limit```: Accepts only ```:number > 0``` values, otherwise ignores the parameter. Limits result set to a subset of top ```$limit``` records. Example: 
++ __```limit```__: Accepts only ```:number > 0``` values, otherwise ignores the parameter. Limits result set to a subset of top ```$limit``` records. Example: 
   > There is 15 versions of given note stored in DB. Query ```?order=DESC&limit=10``` will return all of the last ten versions.
 
-+ ```page```: Usable when ```$limit > 0```. Accepts only ```:number > 0``` values, otherwise ignores the parameter. Skips the top ```$limit * ($page - 1)``` records and then returns next ```$limit`` of them. Example:
++ __```page```__: Usable when ```$limit > 0```. Accepts only ```:number > 0``` values, otherwise ignores the parameter. Skips the top ```$limit * ($page - 1)``` records and then returns next ```$limit``` of them. Example:
   > There is 15 versions of given note stored in DB. Query ```?order=ASC&limit=10&page=2``` will skip the first ten versions and then return the 5 most recent ones.
 
 Example:
